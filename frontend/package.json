@@ -1,0 +1,29 @@
+{
+  "name": "campus-blog-frontend",
+  "version": "1.0.0",
+  "description": "校园个人博客系统 - 前端（Next.js + Ant Design）",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^5.6.0",
+    "@ant-design/nextjs-registry": "^1.1.0",
+    "antd": "^5.26.0",
+    "axios": "^1.7.9",
+    "dayjs": "^1.11.13",
+    "highlight.js": "^11.11.1",
+    "next": "^15.2.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.0"
+  }
+}

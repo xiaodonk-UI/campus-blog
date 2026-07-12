@@ -1,0 +1,58 @@
+# ==========================================
+# 校园个人博客系统 - Git忽略规则
+# ==========================================
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+venv/
+env/
+.venv/
+
+# ===== 环境变量（含密钥，绝对不能提交，仅保留.example模板）=====
+.env
+*.env
+*.env*.local
+!.env.example
+!.env.local.example
+
+# ===== Flask =====
+instance/
+uploads/
+
+# ===== Node.js / Next.js =====
+node_modules/
+.next/
+out/
+.pnp
+.pnp.js
+
+# ===== 操作系统 =====
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ===== 日志 =====
+*.log
+logs/
+
+# ===== 缓存 =====
+.cache/
+*.tsbuildinfo
+
+# ===== Claude =====
+.claude/
+CLAUDE.md
