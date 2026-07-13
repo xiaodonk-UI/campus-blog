@@ -17,12 +17,18 @@ export const metadata: Metadata = {
   description: '分享技术、学习与校园生活的个人博客平台',
 };
 
-/** Ant Design 主题配置 */
+/** Ant Design 主题配置 — 校园活力风 */
 const themeConfig = {
   token: {
-    colorPrimary: '#1677ff',      // 主色调：经典蓝色
-    borderRadius: 6,
+    colorPrimary: '#1677ff',       // 主色调：校园蓝
+    colorSuccess: '#52c41a',       // 成功绿：青春活力
+    colorWarning: '#fa8c16',       // 警告橙
+    colorError: '#ff4d4f',         // 错误红
+    colorInfo: '#1677ff',
+    borderRadius: 8,               // 圆角更柔和
     fontSize: 14,
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif",
+    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)',
   },
 };
 
