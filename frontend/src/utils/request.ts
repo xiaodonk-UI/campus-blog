@@ -3,8 +3,10 @@
  * 功能：自动携带Token、401未登录跳转、全局错误提示
  */
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
-import { message } from 'antd';
 import { getToken, clearAuth } from './auth';
+
+/** 简易提示（不依赖antd，避免SSR/版本警告） */
+const toast = (msg: string) => { console.error("[API]", msg); };
 
 /** 后端API基础地址 */
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000';
@@ -16,16 +18,6 @@ const request = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-/**
- * 安全调用 message.error（防止SSR阶段message未挂载导致静默失败）
- */
-function showError(msg: string) {
-  try { message?.error?.(msg); } catch { console.error('[请求错误]', msg); }
-}
-
-function showSuccess(msg: string) {
-  try { message?.success?.(msg); } catch { console.log('[请求成功]', msg); }
-}
 
 /**
  * 请求拦截器：自动在请求头中添加Authorization Token
@@ -53,7 +45,7 @@ request.interceptors.response.use(
       return res;
     }
     // 业务错误：显示错误提示
-    showError(res.msg || '请求失败');
+    console.error(res.msg || '请求失败');
     return Promise.reject(new Error(res.msg || '请求失败'));
   },
   (error: AxiosError<{ code?: number; msg?: string }>) => {
@@ -64,24 +56,24 @@ request.interceptors.response.use(
       if (status === 401) {
         // 未登录 → 清除凭证并跳转登录页
         clearAuth();
-        showError('登录已过期，请重新登录');
+        console.error('登录已过期，请重新登录');
         // 延迟跳转，让用户看到提示
         setTimeout(() => {
           window.location.href = '/login';
         }, 1000);
       } else if (status === 403) {
-        showError(data?.msg || '权限不足，无法执行此操作');
+        console.error(data?.msg || '权限不足，无法执行此操作');
       } else if (status === 404) {
-        showError(data?.msg || '请求的资源不存在');
+        console.error(data?.msg || '请求的资源不存在');
       } else if (status === 500) {
-        showError(data?.msg || '服务器繁忙，请稍后重试');
+        console.error(data?.msg || '服务器繁忙，请稍后重试');
       } else {
-        showError(data?.msg || `请求异常 (${status})`);
+        console.error(data?.msg || `请求异常 (${status})`);
       }
     } else if (error.code === 'ECONNABORTED') {
-      showError('请求超时，请检查网络');
+      console.error('请求超时，请检查网络');
     } else {
-      showError('网络连接异常，请检查后端服务是否已启动');
+      console.error('网络连接异常，请检查后端服务是否已启动');
     }
 
     return Promise.reject(error);

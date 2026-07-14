@@ -96,7 +96,7 @@ export default function ArticleDetailPage() {
   // 错误态
   if (error) {
     return (
-      <Alert message="加载失败" description={error} type="error" showIcon
+      <Alert title="加载失败" description={error} type="error" showIcon
         action={<Button onClick={fetchArticle}>重试</Button>}
       />
     );

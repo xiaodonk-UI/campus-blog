@@ -4,7 +4,7 @@
  * 校园个人博客系统 - 全局导航栏组件
  * 包含：Logo、首页/发布文章/个人中心导航、全局搜索框、登录/注册入口
  */
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -23,6 +23,8 @@ export default function Navbar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { user, logout } = useAuth();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
   const { token: themeToken } = theme.useToken();
 
   const [searchValue, setSearchValue] = useState(searchParams.get('search') || '');
@@ -106,9 +108,10 @@ export default function Navbar() {
           size="middle"
         />
 
-        {/* 用户操作区（桌面端） */}
+        {/* 用户操作区（桌面端）— SSR兼容：mounted前不渲染避免hydration不匹配 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {user ? (
+          {!mounted ? <span style={{ width: 80, display: 'inline-block' }} /> :
+           user ? (
             <Dropdown menu={{ items: userMenuItems, onClick: handleUserMenuClick }} placement="bottomRight">
               <Space style={{ cursor: 'pointer' }}>
                 <Avatar src={user.avatar_url} icon={<UserOutlined />} size="small" />
@@ -140,7 +143,7 @@ export default function Navbar() {
         placement="right"
         open={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
-        width={260}
+        styles={{ wrapper: { width: 260 } }}
       >
         <Menu
           mode="vertical"

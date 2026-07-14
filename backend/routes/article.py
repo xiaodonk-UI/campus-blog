@@ -108,7 +108,8 @@ def list_articles():
         search_columns=search_columns,
         order_by=sort_field,
         ascending=False,
-        select="*, users!articles_author_id_fkey(username, nickname, avatar_url)"
+        # 列表不返回content正文（可能含大体积base64图片致超时）
+        select="id,title,summary,cover_url,tags,status,view_count,like_count,comment_count,is_pinned,author_id,category_id,created_at,updated_at,users!articles_author_id_fkey(username,nickname,avatar_url)"
     )
 
     # 如果按标签筛选，在应用层过滤（因为Supabase数组查询有限制）
@@ -151,10 +152,9 @@ def hot_articles():
     热门文章排行接口（按点赞数降序，取前10）
     """
     try:
-        result = db._client.table("articles").select(
-            "id, title, like_count, comment_count, view_count, created_at"
-        ).eq("status", "published").order("like_count", desc=True).limit(10).execute()
-        return success(result.data or [], "查询成功")
+        data = db.query("articles", select="id,title,like_count,comment_count,view_count,created_at",
+                        filters={"status": "published"}, order_by="like_count", ascending=False, limit=10)
+        return success(data, "查询成功")
     except Exception as e:
         logger.error(f"查询热门文章失败: {e}")
         return success([], "查询成功")
@@ -198,24 +198,19 @@ def get_article(article_id):
         category = db.get_by_id("categories", article["category_id"])
         article["category"] = {"id": category["id"], "name": category["name"]} if category else None
 
-    # 增加浏览次数（使用Supabase的rpc或直接更新）
+    # 增加浏览次数
     try:
-        db._client.table("articles").update(
-            {"view_count": (article.get("view_count", 0) + 1)}
-        ).eq("id", article_id).execute()
+        db.update("articles", article_id, {"view_count": (article.get("view_count", 0) + 1)})
     except Exception:
-        pass  # 浏览次数更新失败不影响主流程
+        pass
 
     # 当前用户是否已点赞
     current_user = getattr(g, "current_user", None)
     article["is_liked"] = False
     if current_user:
         try:
-            like_result = db._client.table("likes").select("*") \
-                .eq("article_id", article_id) \
-                .eq("user_id", current_user["id"]) \
-                .execute()
-            article["is_liked"] = len(like_result.data) > 0 if like_result.data else False
+            likes = db.query("likes", select="id", filters={"article_id": article_id, "user_id": current_user["id"]})
+            article["is_liked"] = len(likes) > 0
         except Exception:
             pass
 

@@ -62,20 +62,25 @@ def register():
         return fail("请输入有效的邮箱地址")
 
     try:
-        # 使用 Supabase Auth 注册用户
-        supabase_auth = db._client
-        auth_response = supabase_auth.auth.sign_up({
-            "email": email,
-            "password": password,
-            "options": {"data": {"username": username}}
-        })
+        # 使用 Supabase Auth REST API 注册
+        import requests
+        auth_url = f"{Config.SUPABASE_URL}/auth/v1/signup"
+        auth_headers = {"apikey": Config.SUPABASE_KEY, "Content-Type": "application/json"}
+        auth_resp = requests.post(auth_url, json={
+            "email": email, "password": password,
+            "data": {"username": username}
+        }, headers=auth_headers, timeout=15)
 
-        if not auth_response.user:
-            return fail("注册失败，请稍后重试")
+        if auth_resp.status_code != 200:
+            err = auth_resp.json()
+            return fail(err.get("msg", "注册失败"))
+
+        auth_data = auth_resp.json()
+        auth_id = auth_data["user"]["id"]
 
         # 在users表中创建用户记录
         user_data = {
-            "auth_id": auth_response.user.id,
+            "auth_id": auth_id,
             "username": username,
             "nickname": nickname,
         }
@@ -83,10 +88,9 @@ def register():
         if not new_user:
             return fail("创建用户记录失败")
 
-        # 检查邮箱确认状态
-        email_confirmed = auth_response.user.email_confirmed_at is not None if hasattr(auth_response.user, 'email_confirmed_at') else False
+        email_confirmed = auth_data["user"].get("email_confirmed_at") is not None
 
-        logger.info(f"新用户注册成功: {username} (id={new_user['id']}, 邮箱已确认={email_confirmed})")
+        logger.info(f"新用户注册成功: {username}")
         return created({
             "user": new_user,
             "email_confirmed": email_confirmed,
@@ -121,74 +125,58 @@ def login():
         return fail("请输入密码")
 
     try:
-        # 使用Supabase Auth登录
-        supabase_auth = db._client
-        auth_response = supabase_auth.auth.sign_in_with_password({
-            "email": email,
-            "password": password
-        })
+        # 使用 Supabase Auth REST API 登录
+        import requests
+        auth_url = f"{Config.SUPABASE_URL}/auth/v1/token?grant_type=password"
+        auth_headers = {"apikey": Config.SUPABASE_KEY, "Content-Type": "application/json"}
+        auth_resp = requests.post(auth_url, json={
+            "email": email, "password": password
+        }, headers=auth_headers, timeout=15)
 
-        if not auth_response.user:
+        if auth_resp.status_code != 200:
             return fail("邮箱或密码错误")
 
-        # 查询/创建用户信息（确保users表中的auth_id与Supabase Auth一致）
-        user = db.get_user_by_auth_id(auth_response.user.id)
-        if not user:
-            # 从Supabase Auth用户元数据中提取用户名
-            raw_username = auth_response.user.user_metadata.get("username", "") if auth_response.user.user_metadata else ""
-            username = raw_username or email.split("@")[0]
+        auth_data = auth_resp.json()
+        auth_id = auth_data["user"]["id"]
+        token = auth_data["access_token"]
+        refresh_token = auth_data["refresh_token"]
 
-            # 尝试新建 → 失败则改用户名重试 → 仍失败则删除同名旧记录重建
+        # 查询或创建用户记录
+        user = db.get_user_by_auth_id(auth_id)
+        if not user:
+            raw_username = auth_data["user"].get("user_metadata", {}).get("username", "")
+            username = raw_username or email.split("@")[0]
             for attempt in range(3):
                 suffix = f"_{random.randint(1000, 9999)}" if attempt > 0 else ""
                 try_name = username + suffix if attempt > 0 else username
-
                 new_user = db.insert("users", {
-                    "auth_id": auth_response.user.id,
-                    "username": try_name,
+                    "auth_id": auth_id, "username": try_name,
                     "nickname": raw_username or username,
                 })
                 if new_user:
                     user = new_user
-                    if attempt > 0:
-                        logger.info(f"用户 {username} 已存在，使用新用户名: {try_name}")
-                    else:
-                        logger.info(f"为用户自动补建users记录: {username}")
                     break
                 elif attempt == 2:
-                    # 最后一次尝试：删除同名旧记录后重建
                     existing = db.list_all("users", {"username": username})
                     if existing:
                         db.delete("users", existing[0]["id"])
-                        logger.info(f"已删除旧的用户记录: {username}")
                     new_user = db.insert("users", {
-                        "auth_id": auth_response.user.id,
-                        "username": username,
+                        "auth_id": auth_id, "username": username,
                         "nickname": raw_username or username,
                     })
                     if new_user:
                         user = new_user
-                        logger.info(f"重建用户记录成功: {username}")
-                    else:
-                        return fail("用户数据异常，请联系管理员")
-                # attempt 0 or 1 failed, try next
+                        break
 
         if not user:
-            return fail("用户数据异常，请联系管理员")
+            return fail("用户数据异常")
 
         logger.info(f"用户登录成功: {user['username']}")
-        return success({
-            "token": auth_response.session.access_token,   # Supabase JWT Token
-            "refresh_token": auth_response.session.refresh_token,
-            "user": user
-        }, "登录成功")
+        return success({"token": token, "refresh_token": refresh_token, "user": user}, "登录成功")
 
     except Exception as e:
-        error_msg = str(e)
-        logger.warning(f"登录失败: {error_msg}")
-        if "Invalid login" in error_msg or "credentials" in error_msg.lower():
-            return fail("邮箱或密码错误")
-        return fail(f"登录失败: {error_msg}")
+        logger.warning(f"登录失败: {e}")
+        return fail("邮箱或密码错误")
 
 
 @user_bp.route("/profile", methods=["GET"])

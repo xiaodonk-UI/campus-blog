@@ -6,7 +6,7 @@
  * 包裹在根布局中，所有页面可访问
  */
 import React, { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import { message } from 'antd';
+import { App } from 'antd';
 import type { User, LoginParams, RegisterParams, AuthResponse } from '@/types';
 import request from '@/utils/request';
 import { saveAuth, clearAuth, getStoredUser, getToken } from '@/utils/auth';
@@ -28,7 +28,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);  // 初始为true，完成检查后设为false
+  const [loading, setLoading] = useState(true);
+  const { message } = App.useApp();  // antd v6推荐用法，避免静态API警告
 
   /**
    * 应用初始化时：检查本地是否有Token，有则恢复登录状态
