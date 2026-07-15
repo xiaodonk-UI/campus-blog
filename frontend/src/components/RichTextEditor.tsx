@@ -131,10 +131,17 @@ export default function RichTextEditor({ value = '', onChange }: RichTextEditorP
    * 确认插入链接
    */
   const handleInsertLink = useCallback(() => {
-    const url = linkUrl.trim();
-    if (!url || (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('/') && !url.startsWith('#'))) {
-      message.warning('请输入有效的链接地址（以http://、https://、/或#开头）');
-      return;
+    let url = linkUrl.trim();
+    if (!url) { message.warning('请输入链接地址'); return; }
+    // 自动修正常见URL书写错误
+    if (url.startsWith('http//')) url = url.replace('http//', 'http://');
+    if (url.startsWith('https//')) url = url.replace('https//', 'https://');
+    // 纯域名自动补https://
+    if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('/') && !url.startsWith('#') && !url.startsWith('mailto:')) {
+      if (url.includes('.') && !url.includes(' ')) url = 'https://' + url;
+    }
+    if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('/') && !url.startsWith('#') && !url.startsWith('mailto:')) {
+      message.warning('请输入有效的链接地址'); return;
     }
     const text = linkText.trim();
 

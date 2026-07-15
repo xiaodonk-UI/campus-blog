@@ -6,7 +6,7 @@
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  List, Input, Button, Avatar, Space, Typography, Popconfirm, message,
+  Input, Button, Avatar, Space, Typography, Popconfirm, App,
   Empty, Pagination, Spin,
 } from 'antd';
 import { DeleteOutlined, UserOutlined } from '@ant-design/icons';
@@ -23,6 +23,7 @@ interface CommentSectionProps {
 }
 
 export default function CommentSection({ articleId }: CommentSectionProps) {
+  const { message } = App.useApp();
   const { user } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
   const [total, setTotal] = useState(0);
@@ -127,57 +128,32 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
         {comments.length === 0 && !loading ? (
           <Empty description="暂无评论，来抢沙发吧~" />
         ) : (
-          <List
-            dataSource={comments}
-            renderItem={(comment) => {
-              // 判断当前用户是否为该评论的作者
+          <div>
+            {comments.map((comment) => {
               const isCommentOwner = user && user.id === comment.user_id;
               return (
-                <List.Item
-                  style={{ padding: '12px 0' }}
-                  actions={[
-                    isCommentOwner && (
-                      <Popconfirm
-                        key="delete"
-                        title="确定删除这条评论吗？"
-                        onConfirm={() => handleDelete(comment.id)}
-                        okText="确定"
-                        cancelText="取消"
-                      >
-                        <Button type="text" danger size="small" icon={<DeleteOutlined />}>
-                          删除
-                        </Button>
-                      </Popconfirm>
-                    )
-                  ].filter(Boolean)}
-                >
-                  <List.Item.Meta
-                    avatar={
-                      <Avatar
-                        src={comment.user?.avatar_url || (comment.users as any)?.avatar_url}
-                        icon={<UserOutlined />}
-                      />
-                    }
-                    title={
-                      <Space>
-                        <Text strong>
-                          {comment.user?.nickname || (comment.users as any)?.nickname || comment.user?.username || (comment.users as any)?.username || '匿名'}
-                        </Text>
-                        <Text type="secondary" style={{ fontSize: 12 }}>
-                          {dayjs(comment.created_at).format('YYYY-MM-DD HH:mm')}
-                        </Text>
-                      </Space>
-                    }
-                    description={
-                      <Typography.Paragraph style={{ marginBottom: 0, whiteSpace: 'pre-wrap' }}>
-                        {comment.content}
-                      </Typography.Paragraph>
-                    }
-                  />
-                </List.Item>
+                <div key={comment.id} style={{ padding: '12px 0', borderBottom: '1px solid #f0f0f0' }}>
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    <Avatar src={comment.user?.avatar_url || (comment as any)?.users?.avatar_url} icon={<UserOutlined />} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Space>
+                          <Text strong>{(comment as any).user?.nickname || (comment as any).users?.nickname || (comment as any).user?.username || (comment as any).users?.username || '匿名'}</Text>
+                          <Text type="secondary" style={{ fontSize: 12 }}>{dayjs(comment.created_at).format('YYYY-MM-DD HH:mm')}</Text>
+                        </Space>
+                        {isCommentOwner && (
+                          <Popconfirm title="确定删除这条评论吗？" onConfirm={() => handleDelete(comment.id)} okText="确定" cancelText="取消">
+                            <Button type="text" danger size="small" icon={<DeleteOutlined />}>删除</Button>
+                          </Popconfirm>
+                        )}
+                      </div>
+                      <Typography.Paragraph style={{ marginBottom: 0, whiteSpace: 'pre-wrap', marginTop: 4 }}>{comment.content}</Typography.Paragraph>
+                    </div>
+                  </div>
+                </div>
               );
-            }}
-          />
+            })}
+          </div>
         )}
       </Spin>
 

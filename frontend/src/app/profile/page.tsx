@@ -8,7 +8,7 @@
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
-  Card, Form, Input, Button, Avatar, Tabs, Typography, Space, message,
+  Card, Form, Input, Button, Avatar, Tabs, Typography, Space, App,
   Upload, Spin, Empty, Alert, Skeleton, Pagination, Divider, Popconfirm,
 } from 'antd';
 import {
@@ -19,6 +19,7 @@ import type { UploadProps } from 'antd';
 import AuthGuard from '@/components/AuthGuard';
 import { useAuth } from '@/contexts/AuthContext';
 import request from '@/utils/request';
+import { getToken } from '@/utils/auth';
 import type { Article, PaginatedData } from '@/types';
 
 export default function ProfilePage() {
@@ -71,6 +72,7 @@ interface ProfileFormProps {
 }
 
 function ProfileForm({ user, onRefresh, onLogout }: ProfileFormProps) {
+  const { message } = App.useApp();
   const [form] = Form.useForm();
   const [saving, setSaving] = useState(false);
 
@@ -92,26 +94,22 @@ function ProfileForm({ user, onRefresh, onLogout }: ProfileFormProps) {
     finally { setSaving(false); }
   }, [onRefresh]);
 
-  /** 头像上传配置 */
+  /** 头像上传：手动用request发FormData，绕过antd Upload的action */
+  const handleAvatar = useCallback(async (file: File) => {
+    if (!file.type.startsWith('image/')) { message.error('只能上传图片文件！'); return; }
+    if (file.size > 2 * 1024 * 1024) { message.error('图片大小不能超过2MB！'); return; }
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      await request.post('/api/user/avatar', fd, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000 });
+      message.success('头像更新成功');
+      onRefresh();
+    } catch { /* 由拦截器处理 */ }
+  }, [onRefresh]);
+
   const uploadProps: UploadProps = {
-    name: 'file',
-    action: `${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'}/api/user/profile`,
     showUploadList: false,
-    beforeUpload: (file) => {
-      const isImage = file.type.startsWith('image/');
-      if (!isImage) { message.error('只能上传图片文件！'); return false; }
-      const isLt2M = file.size / 1024 / 1024 < 2;
-      if (!isLt2M) { message.error('图片大小不能超过2MB！'); return false; }
-      return true;
-    },
-    onChange: (info) => {
-      if (info.file.status === 'done') {
-        message.success('头像更新成功');
-        onRefresh();
-      } else if (info.file.status === 'error') {
-        message.error('头像上传失败');
-      }
-    },
+    beforeUpload: (file) => { handleAvatar(file); return false; },
   };
 
   return (
@@ -182,6 +180,7 @@ interface MyArticlesTabProps {
 }
 
 function MyArticlesTab({ userId }: MyArticlesTabProps) {
+  const { message } = App.useApp();
   const router = useRouter();
   const [articles, setArticles] = useState<Article[]>([]);
   const [total, setTotal] = useState(0);

@@ -10,6 +10,7 @@ import zhCN from 'antd/locale/zh_CN';
 import { AuthProvider } from '@/contexts/AuthContext';
 import Navbar from '@/components/Navbar';
 import './globals.css';
+import 'highlight.js/styles/github.css';  // 代码高亮全局生效
 
 /** 页面元数据 */
 export const metadata: Metadata = {

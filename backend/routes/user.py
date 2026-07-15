@@ -231,6 +231,35 @@ def update_profile():
     return success(updated, "更新成功")
 
 
+@user_bp.route("/avatar", methods=["POST"])
+@login_required
+def upload_avatar():
+    """上传头像（接受图片文件，转base64存数据库）"""
+    if "file" not in request.files:
+        return fail("请选择图片文件")
+    file = request.files["file"]
+    if not file.filename:
+        return fail("请选择图片文件")
+    allowed = {"image/jpeg", "image/png", "image/gif", "image/webp"}
+    if file.content_type not in allowed:
+        return fail("仅支持 JPG、PNG、GIF、WebP 格式")
+    file.seek(0, 2)
+    size = file.tell()
+    file.seek(0)
+    if size > 2 * 1024 * 1024:
+        return fail("图片大小不能超过2MB")
+    try:
+        import base64
+        data = file.read()
+        b64 = base64.b64encode(data).decode()
+        url = f"data:{file.content_type};base64,{b64}"
+        updated = db.update("users", g.current_user["id"], {"avatar_url": url})
+        return success({"avatar_url": url}, "头像上传成功") if updated else fail("更新失败")
+    except Exception as e:
+        logger.error(f"头像上传失败: {e}")
+        return fail("头像上传失败")
+
+
 @user_bp.route("/public/<user_id>", methods=["GET"])
 def get_public_user(user_id):
     """

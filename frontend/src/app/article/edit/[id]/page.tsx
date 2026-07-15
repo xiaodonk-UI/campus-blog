@@ -7,7 +7,7 @@
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Card, Form, Input, Select, Button, message, Space, Typography, Spin, Alert, Empty, Skeleton } from 'antd';
+import { Card, Form, Input, Select, Button, App, Space, Typography, Spin, Alert, Empty, Skeleton } from 'antd';
 import { SaveOutlined, SendOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import dynamic from 'next/dynamic';
 import AuthGuard from '@/components/AuthGuard';
@@ -33,6 +33,7 @@ export default function EditArticlePage() {
 
 /** 编辑文章表单组件 */
 function EditArticleForm() {
+  const { message } = App.useApp();
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();

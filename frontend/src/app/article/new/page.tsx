@@ -7,7 +7,7 @@
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, Form, Input, Select, Button, message, Space, Typography } from 'antd';
+import { Card, Form, Input, Select, Button, App, Space, Typography } from 'antd';
 import { SaveOutlined, SendOutlined, ArrowLeftOutlined, FileTextOutlined } from '@ant-design/icons';
 import dynamic from 'next/dynamic';
 import AuthGuard from '@/components/AuthGuard';
@@ -32,6 +32,7 @@ export default function NewArticlePage() {
 
 /** 发布文章表单组件 */
 function NewArticleForm() {
+  const { message } = App.useApp();
   const router = useRouter();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);

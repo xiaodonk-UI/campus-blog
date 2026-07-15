@@ -6,7 +6,7 @@
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Row, Col, Pagination, Spin, Empty, Alert, Card, Tag, List, Skeleton } from 'antd';
+import { Row, Col, Pagination, Spin, Empty, Alert, Card, Tag, Skeleton } from 'antd';
 import { FireOutlined, FolderOutlined, ReloadOutlined } from '@ant-design/icons';
 import ArticleCard from '@/components/ArticleCard';
 import request from '@/utils/request';
@@ -219,11 +219,9 @@ export default function HomePage() {
             ) : hotArticles.length === 0 ? (
               <Empty description="暂无数据" image={Empty.PRESENTED_IMAGE_SIMPLE} />
             ) : (
-              <List
-                size="small"
-                dataSource={hotArticles}
-                renderItem={(item, index) => (
-                  <List.Item style={{ padding: '8px 0', cursor: 'pointer' }}
+              <div>
+                {hotArticles.map((item, index) => (
+                  <div key={item.id} style={{ padding: '8px 0', cursor: 'pointer' }}
                     onClick={() => router.push(`/article/${item.id}`)}
                   >
                     <span style={{
@@ -244,9 +242,9 @@ export default function HomePage() {
                     <span style={{ fontSize: 12, color: '#999', marginLeft: 4, flexShrink: 0 }}>
                       {item.like_count}赞
                     </span>
-                  </List.Item>
-                )}
-              />
+                  </div>
+                ))}
+              </div>
             )}
           </Card>
         </Col>

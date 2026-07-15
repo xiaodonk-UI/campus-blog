@@ -25,7 +25,7 @@ def _get_jwks_client():
     """获取JWKS客户端（懒加载单例，避免重复创建）"""
     global _jwks_client
     if _jwks_client is None:
-        _jwks_client = PyJWKClient(JWKS_URL, cache_keys=True)
+        _jwks_client = PyJWKClient(JWKS_URL, cache_keys=True, timeout=10)
         logger.info(f"JWKS客户端初始化: {JWKS_URL}")
     return _jwks_client
 
@@ -37,11 +37,9 @@ def _decode_token(token: str) -> dict | None:
     返回payload字典，验证失败返回None
     """
     try:
-        # 获取JWKS客户端，根据Token的kid找到匹配的公钥
         jwks_client = _get_jwks_client()
         signing_key = jwks_client.get_signing_key_from_jwt(token)
 
-        # 使用公钥验证Token（跳过audience校验，Supabase默认aud为"authenticated"）
         payload = jwt.decode(
             token,
             key=signing_key.key,
@@ -56,7 +54,8 @@ def _decode_token(token: str) -> dict | None:
         logger.warning(f"Token验证失败: {e}")
         return None
     except Exception as e:
-        logger.error(f"鉴权异常: {e}")
+        # SSL握手超时等网络问题 → 不阻塞请求，降级为未登录
+        logger.warning(f"鉴权降级（网络问题）: {e}")
         return None
 
 

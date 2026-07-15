@@ -7,7 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Card, Form, Input, Button, message, Typography, Divider, Alert } from 'antd';
+import { Card, Form, Input, Button, App, Typography, Divider, Alert } from 'antd';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
 import { useAuth } from '@/contexts/AuthContext';
 import type { LoginParams } from '@/types';
@@ -17,6 +17,7 @@ const { Title, Text } = Typography;
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { message } = App.useApp();
   const { user, login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();

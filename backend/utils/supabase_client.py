@@ -14,6 +14,7 @@ HEADERS = {
     "apikey": Config.SUPABASE_SERVICE_KEY,
     "Authorization": "Bearer " + Config.SUPABASE_SERVICE_KEY,
     "Content-Type": "application/json",
+    "Prefer": "return=representation",
 }
 
 
@@ -21,16 +22,16 @@ class SupabaseClient:
     """Supabase REST API 操作工具类"""
 
     def _get(self, url, params=None):
-        return requests.get(url, headers=HEADERS, params=params, timeout=15)
+        return requests.get(url, headers={**HEADERS, "Connection": "close"}, params=params, timeout=15)
 
     def _post(self, url, data):
-        return requests.post(url, headers=HEADERS, json=data, timeout=15)
+        return requests.post(url, headers={**HEADERS, "Connection": "close"}, json=data, timeout=15)
 
     def _patch(self, url, data):
-        return requests.patch(url, headers=HEADERS, json=data, timeout=15)
+        return requests.patch(url, headers={**HEADERS, "Connection": "close"}, json=data, timeout=15)
 
     def _delete(self, url):
-        return requests.delete(url, headers=HEADERS, timeout=15)
+        return requests.delete(url, headers={**HEADERS, "Connection": "close"}, timeout=15)
 
     # ========== 查询 ==========
 
@@ -59,46 +60,34 @@ class SupabaseClient:
                         search=None, search_columns=None, order_by="created_at",
                         ascending=False, select="*"):
         try:
-            params = {
+            filter_params = {}
+            if filters:
+                for k, v in filters.items():
+                    filter_params[k] = f"eq.{v}"
+            if search and search_columns:
+                or_parts = [f'{col}.ilike.%{search}%' for col in search_columns]
+                filter_params["or"] = f"({','.join(or_parts)})"
+
+            # 一次查询同时拿数据和总数（Prefer: count=exact）
+            count_headers = {**HEADERS, "Prefer": "count=exact"}
+            data_params = {
                 "select": select,
                 "order": f"{order_by}.{'asc' if ascending else 'desc'}",
                 "offset": str((page - 1) * page_size),
                 "limit": str(page_size),
+                **filter_params
             }
-            # 等值过滤
-            if filters:
-                for k, v in filters.items():
-                    params[k] = f"eq.{v}"
-            # 模糊搜索
-            if search and search_columns:
-                or_parts = [f'{col}.ilike.%{search}%' for col in search_columns]
-                params["or"] = f"({','.join(or_parts)})"
+            r = requests.get(f"{BASE}/{table}", headers=count_headers,
+                           params=data_params, timeout=15)
 
-            # 查数据
-            r = self._get(f"{BASE}/{table}", params)
+            total = 0
+            if "content-range" in r.headers:
+                total = int(r.headers["content-range"].split("/")[-1])
 
-            # 查总数
-            count_params = {"select": "id"}
-            if filters:
-                for k, v in filters.items():
-                    count_params[k] = f"eq.{v}"
-            # Supabase count用Prefer头
-            count_headers = {**HEADERS, "Prefer": "count=exact"}
-            cr = requests.get(f"{BASE}/{table}", headers=count_headers,
-                            params={"select": "id", **{k: count_params.get(k, "") for k in count_params if k != "select"}})
-
-            # 修正count参数
-            count_final = {}
-            if filters:
-                for k, v in filters.items():
-                    count_final[k] = f"eq.{v}"
-            cr2 = requests.get(f"{BASE}/{table}", headers=count_headers,
-                             params={"select": "id", **count_final})
-            total = int(cr2.headers.get("content-range", "0/0").split("/")[-1]) if "content-range" in cr2.headers else 0
-
+            data = r.json() if r.text else []
             return {
-                "list": r.json() or [],
-                "total": total,
+                "list": data or [],
+                "total": total or len(data),
                 "page": page,
                 "page_size": page_size
             }
@@ -111,8 +100,14 @@ class SupabaseClient:
     def insert(self, table, data):
         try:
             r = self._post(f"{BASE}/{table}", data)
-            result = r.json()
-            return result[0] if isinstance(result, list) else result
+            if r.status_code in (200, 201):
+                try:
+                    result = r.json()
+                    return (result[0] if isinstance(result, list) else result) if result else data
+                except Exception:
+                    return data  # 响应为空时用传入数据兜底
+            logger.error(f"插入{table}失败: {r.status_code} {r.text}")
+            return None
         except Exception as e:
             logger.error(f"插入{table}失败: {e}")
             return None
@@ -120,7 +115,12 @@ class SupabaseClient:
     def update(self, table, record_id, data):
         try:
             r = self._patch(f"{BASE}/{table}?id=eq.{record_id}", data)
-            return r.text and (r.json() or None)
+            if r.status_code in (200, 204):
+                if r.text:
+                    result = r.json()
+                    return result[0] if isinstance(result, list) else result
+                return data
+            return None
         except Exception as e:
             logger.error(f"更新{table}失败: {e}")
             return None

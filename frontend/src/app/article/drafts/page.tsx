@@ -6,7 +6,7 @@
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, Button, Empty, Spin, Tag, Space, Typography, Popconfirm, message, Pagination } from 'antd';
+import { Card, Button, Empty, Spin, Tag, Space, Typography, Popconfirm, App, Pagination } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined, ArrowLeftOutlined, FileTextOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import AuthGuard from '@/components/AuthGuard';
@@ -24,6 +24,7 @@ export default function DraftsPage() {
 }
 
 function DraftsContent() {
+  const { message } = App.useApp();
   const router = useRouter();
   const [drafts, setDrafts] = useState<Article[]>([]);
   const [total, setTotal] = useState(0);

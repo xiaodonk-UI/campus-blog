@@ -109,7 +109,7 @@ def list_articles():
         order_by=sort_field,
         ascending=False,
         # 列表不返回content正文（可能含大体积base64图片致超时）
-        select="id,title,summary,cover_url,tags,status,view_count,like_count,comment_count,is_pinned,author_id,category_id,created_at,updated_at,users!articles_author_id_fkey(username,nickname,avatar_url)"
+        select="id,title,summary,cover_url,tags,status,view_count,like_count,comment_count,is_pinned,author_id,category_id,created_at,updated_at,author:users!articles_author_id_fkey(username,nickname,avatar_url)"
     )
 
     # 如果按标签筛选，在应用层过滤（因为Supabase数组查询有限制）

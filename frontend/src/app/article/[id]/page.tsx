@@ -6,7 +6,7 @@
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Card, Typography, Tag, Avatar, Space, Button, Spin, Alert, Empty, Divider, Popconfirm, message, Skeleton } from 'antd';
+import { Card, Typography, Tag, Avatar, Space, Button, Spin, Alert, Empty, Divider, Popconfirm, App, Skeleton } from 'antd';
 import {
   EyeOutlined, LikeOutlined, LikeFilled, ClockCircleOutlined,
   EditOutlined, DeleteOutlined, UserOutlined, ArrowLeftOutlined,

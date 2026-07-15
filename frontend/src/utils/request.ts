@@ -14,7 +14,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000';
 /** 创建Axios实例，统一配置 */
 const request = axios.create({
   baseURL: API_BASE,
-  timeout: 15000,                        // 15秒超时
+  timeout: 30000,                        // 30秒超时（Supabase冷启动较慢）
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -49,33 +49,29 @@ request.interceptors.response.use(
     return Promise.reject(new Error(res.msg || '请求失败'));
   },
   (error: AxiosError<{ code?: number; msg?: string }>) => {
-    // 网络错误或HTTP错误
+    const config = error.config as any;
+    // 超时自动重试（最多2次，每次超时翻倍）
+    const retryCount = config._retryCount || 0;
+    if ((error.code === 'ECONNABORTED' || !error.response) && retryCount < 2) {
+      config._retryCount = retryCount + 1;
+      config.timeout = (config.timeout || 15000) * 1.5; // 翻倍超时
+      console.warn(`[重试 ${retryCount + 1}/2] ${config.url} (timeout=${config.timeout}ms)`);
+      return new Promise(resolve => setTimeout(resolve, 800)).then(() => request(config));
+    }
+
     if (error.response) {
       const { status, data } = error.response;
-
       if (status === 401) {
-        // 未登录 → 清除凭证并跳转登录页
         clearAuth();
-        console.error('登录已过期，请重新登录');
-        // 延迟跳转，让用户看到提示
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 1000);
-      } else if (status === 403) {
-        console.error(data?.msg || '权限不足，无法执行此操作');
-      } else if (status === 404) {
-        console.error(data?.msg || '请求的资源不存在');
-      } else if (status === 500) {
-        console.error(data?.msg || '服务器繁忙，请稍后重试');
+        setTimeout(() => { window.location.href = '/login'; }, 1000);
       } else {
         console.error(data?.msg || `请求异常 (${status})`);
       }
     } else if (error.code === 'ECONNABORTED') {
       console.error('请求超时，请检查网络');
     } else {
-      console.error('网络连接异常，请检查后端服务是否已启动');
+      console.error('网络连接异常', error.message);
     }
-
     return Promise.reject(error);
   }
 );

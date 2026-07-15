@@ -7,7 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Card, Form, Input, Button, message, Typography, Divider } from 'antd';
+import { Card, Form, Input, Button, App, Typography, Divider } from 'antd';
 import { UserOutlined, MailOutlined, LockOutlined } from '@ant-design/icons';
 import { useAuth } from '@/contexts/AuthContext';
 import type { RegisterParams } from '@/types';
@@ -16,6 +16,7 @@ const { Title, Text } = Typography;
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { message } = App.useApp();
   const { user, register } = useAuth();
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
