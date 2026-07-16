@@ -34,16 +34,8 @@ def create_app() -> Flask:
     # 确保上传目录存在
     os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
 
-    # ---- CORS跨域配置 ----
-    CORS(app, resources={
-        r"/api/*": {
-            "origins": Config.CORS_ORIGINS,
-            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-            "allow_headers": ["Content-Type", "Authorization"],
-            "supports_credentials": True,
-            "max_age": 3600
-        }
-    })
+    # ---- CORS跨域配置（Vercel部署：允许所有域名） ----
+    CORS(app, origins=["*"], supports_credentials=True)
 
     # ---- 注册全局错误处理器 ----
     register_error_handlers(app)
