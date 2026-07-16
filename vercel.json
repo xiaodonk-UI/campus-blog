@@ -3,18 +3,12 @@
   "outputDirectory": "frontend/.next",
   "installCommand": "cd frontend && npm install",
   "functions": {
-    "backend/api/**/*.py": {
+    "backend/api/index.py": {
       "runtime": "@vercel/python@4.1.0"
     }
   },
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/backend/api/index.py"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/$1"
-    }
+    { "src": "/api/(.*)", "dest": "/backend/api/index.py" },
+    { "src": "/(.*)", "dest": "/frontend/$1" }
   ]
 }
