@@ -9,7 +9,7 @@ import { getToken, clearAuth } from './auth';
 const toast = (msg: string) => { console.error("[API]", msg); };
 
 /** 后端API基础地址 */
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || (typeof window === 'undefined' ? 'http://localhost:5000' : '');
 
 /** 创建Axios实例，统一配置 */
 const request = axios.create({
