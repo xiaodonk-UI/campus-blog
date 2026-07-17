@@ -67,7 +67,7 @@ export default function LoginPage() {
 
         {/* 未登录操作提示 */}
         {tipMessage && (
-          <Alert title={tipMessage} type="warning" showIcon closable style={{ marginBottom: 16 }} />
+          <Alert message={tipMessage} type="warning" showIcon closable style={{ marginBottom: 16 }} />
         )}
 
         <Form form={form} onFinish={handleSubmit} layout="vertical" size="large"

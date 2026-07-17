@@ -228,7 +228,7 @@ function MyArticlesTab({ userId }: MyArticlesTabProps) {
       </div>
 
       {error ? (
-        <Alert title={error} type="error" showIcon action={<Button onClick={() => fetchMyArticles(page)}>重试</Button>} />
+        <Alert message={error} type="error" showIcon action={<Button onClick={() => fetchMyArticles(page)}>重试</Button>} />
       ) : loading ? (
         Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} active paragraph={{ rows: 2 }} style={{ marginBottom: 12 }} />)
       ) : articles.length === 0 ? (

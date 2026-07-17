@@ -128,7 +128,7 @@ function EditArticleForm() {
   // 加载失败
   if (fetchError) {
     return (
-      <Alert title="无法编辑" description={fetchError} type="error" showIcon
+      <Alert message="无法编辑" description={fetchError} type="error" showIcon
         action={<Button onClick={() => router.back()}>返回</Button>}
       />
     );
