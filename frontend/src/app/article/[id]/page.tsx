@@ -6,7 +6,7 @@
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Card, Typography, Tag, Avatar, Space, Button, Spin, Alert, Empty, Divider, Popconfirm, App, Skeleton } from 'antd';
+import { Card, Typography, Tag, Avatar, Space, Button, Spin, Empty, Divider, Popconfirm, App, Skeleton } from 'antd';
 import {
   EyeOutlined, LikeOutlined, LikeFilled, ClockCircleOutlined,
   EditOutlined, DeleteOutlined, UserOutlined, ArrowLeftOutlined,
@@ -96,10 +96,11 @@ export default function ArticleDetailPage() {
 
   // 错误态
   if (error) {
+    message.error(error);
     return (
-      <Alert title="加载失败" description={error} type="error" showIcon
-        action={<Button onClick={fetchArticle}>重试</Button>}
-      />
+      <div style={{ textAlign: 'center', padding: 40 }}>
+        <Button onClick={fetchArticle}>重新加载</Button>
+      </div>
     );
   }
 
