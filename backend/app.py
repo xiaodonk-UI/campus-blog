@@ -31,9 +31,6 @@ def create_app() -> Flask:
     # 加载配置
     app.config.from_object(Config)
 
-    # 确保上传目录存在
-    os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
-
     # ---- CORS跨域配置（Vercel部署：允许所有域名） ----
     CORS(app, origins=["*"], supports_credentials=True)
 
