@@ -122,7 +122,7 @@ export default function HomePage() {
       {/* 筛选条件提示 */}
       {hasFilter && (
         <Alert
-          title={
+          message={
             <span>
               {activeSearch && <>搜索：&ldquo;{activeSearch}&rdquo; </>}
               {activeCategory && <>分类：{categories.find(c => c.id === activeCategory)?.name || activeCategory} </>}
