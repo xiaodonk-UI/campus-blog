@@ -4,7 +4,7 @@
  * 校园个人博客系统 - 博客首页
  * 功能：文章分页卡片列表、分类侧边筛选、热门文章排行、关键词搜索
  */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { Suspense, useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Row, Col, Pagination, Spin, Empty, Alert, Card, Tag, Skeleton } from 'antd';
 import { FireOutlined, FolderOutlined, ReloadOutlined } from '@ant-design/icons';
@@ -12,7 +12,7 @@ import ArticleCard from '@/components/ArticleCard';
 import request from '@/utils/request';
 import type { Article, Category, PaginatedData } from '@/types';
 
-export default function HomePage() {
+function HomePageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -251,4 +251,8 @@ export default function HomePage() {
       </Row>
     </div>
   );
+}
+
+export default function HomePage() {
+  return <Suspense><HomePageInner /></Suspense>;
 }

@@ -4,7 +4,7 @@
  * 校园个人博客系统 - 登录页面
  * 功能：表单校验、登录状态持久化、错误提示、注册后自动跳回
  */
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Card, Form, Input, Button, App, Typography, Divider, Alert } from 'antd';
@@ -14,7 +14,7 @@ import type { LoginParams } from '@/types';
 
 const { Title, Text } = Typography;
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { message } = App.useApp();
@@ -110,4 +110,8 @@ export default function LoginPage() {
       </Card>
     </div>
   );
+}
+
+export default function LoginPage() {
+  return <Suspense><LoginForm /></Suspense>;
 }
