@@ -75,22 +75,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   /**
-   * 注册：调用接口 → 检查邮箱确认 → 自动登录或提示验证
+   * 注册：只要验证邮件发出就提示成功，不自动登录
    */
   const register = useCallback(async (params: RegisterParams) => {
-    const res = await request.post('/api/user/register', params);
-    const { email_confirmed } = (res.data as any) || {};
-
-    if (email_confirmed) {
-      // 邮箱已验证 → 自动登录
-      await login({ email: params.email, password: params.password });
-      message.success('注册成功，已自动登录！');
-    } else {
-      // 邮箱未验证 → 跳转登录页并提示
-      message.info('注册成功！请前往邮箱点击验证链接，然后登录。');
-      // 不调用 login，避免报错
-    }
-  }, [login]);
+    await request.post('/api/user/register', params);
+    message.success('验证邮件已发送，请前往邮箱确认完成注册');
+  }, []);
 
   /**
    * 退出登录：清除凭证 → 重置状态

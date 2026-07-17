@@ -78,24 +78,19 @@ def register():
         auth_data = auth_resp.json()
         auth_id = auth_data["user"]["id"]
 
-        # 在users表中创建用户记录
-        user_data = {
-            "auth_id": auth_id,
-            "username": username,
-            "nickname": nickname,
-        }
-        new_user = db.insert("users", user_data)
-        if not new_user:
-            return fail("创建用户记录失败")
+        # 在users表中创建用户记录（失败不阻断注册，仅记日志）
+        try:
+            user_data = {"auth_id": auth_id, "username": username, "nickname": nickname}
+            new_user = db.insert("users", user_data)
+            if not new_user:
+                logger.error(f"users表插入失败: username={username}, auth_id={auth_id}")
+        except Exception as e:
+            logger.error(f"users表插入异常: {e}")
 
-        email_confirmed = auth_data["user"].get("email_confirmed_at") is not None
-
-        logger.info(f"新用户注册成功: {username}")
+        logger.info(f"新用户注册成功: {username}（验证邮件已发送）")
         return created({
-            "user": new_user,
-            "email_confirmed": email_confirmed,
-            "tip": "注册成功！" if email_confirmed else "注册成功！请检查邮箱完成验证后登录。"
-        }, "注册成功")
+            "tip": "验证邮件已发送，请前往邮箱确认完成注册"
+        }, "验证邮件已发送")
 
     except Exception as e:
         error_msg = str(e)
