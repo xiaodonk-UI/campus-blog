@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // 异步验证Token有效性
       try {
         const res = await request.get('/api/user/profile');
-        if (res.code === 200 && res.data) {
+        if ((res as any).code === 200 && res.data) {
           setUser(res.data as User);
         }
       } catch {
@@ -107,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshUser = useCallback(async () => {
     try {
       const res = await request.get('/api/user/profile');
-      if (res.code === 200 && res.data) {
+      if ((res as any).code === 200 && res.data) {
         setUser(res.data as User);
       }
     } catch {
