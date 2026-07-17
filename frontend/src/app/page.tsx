@@ -142,7 +142,7 @@ export default function HomePage() {
         <Col xs={24} lg={17}>
           {error ? (
             <Alert
-              title="加载失败"
+              message="加载失败"
               description={error}
               type="error"
               showIcon
