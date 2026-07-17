@@ -305,7 +305,7 @@ export default function RichTextEditor({ value = '', onChange }: RichTextEditorP
       }}>
         {toolbarGroups.map((group, gi) => (
           <React.Fragment key={gi}>
-            {gi > 0 && <Divider orientation="vertical" style={{ margin: '0 4px' }} />}
+            {gi > 0 && <Divider type="vertical" style={{ margin: '0 4px' }} />}
             <Space size={2}>
               {group.map((btn, bi) => (
                 <Tooltip key={bi} title={btn.tip}>

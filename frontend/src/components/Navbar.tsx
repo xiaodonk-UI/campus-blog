@@ -143,7 +143,7 @@ export default function Navbar() {
         placement="right"
         open={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
-        styles={{ wrapper: { width: 260 } }}
+        width={260}
       >
         <Menu
           mode="vertical"

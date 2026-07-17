@@ -32,7 +32,7 @@ export default function AuthGuard({ children, tip = '请先登录后再进行操
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 300 }}>
-        <Spin size="large" description="加载中..." />
+        <Spin size="large" tip="加载中..." />
       </div>
     );
   }
