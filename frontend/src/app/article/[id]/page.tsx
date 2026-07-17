@@ -22,6 +22,7 @@ const { Title, Text, Paragraph } = Typography;
 export default function ArticleDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { message } = App.useApp();
   const { user } = useAuth();
   const articleId = params.id as string;
 
